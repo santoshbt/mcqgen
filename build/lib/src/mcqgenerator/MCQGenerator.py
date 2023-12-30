@@ -12,15 +12,10 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.chains import SequentialChain
 
-# Load environment variables from the .env file
 load_dotenv()
-
-# Access the environment variables just like you would with os.environ
 key = os.getenv("OPENAI_API_KEY")
-# key = "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"
-print("Value of MY_VARIABLE:", key)
 
-llm = ChatOpenAI(openai_api_key=key,model_name="gpt-3.5-turbo", temperature=0.3)
+llm = ChatOpenAI(openai_api_key=key,model_name="gpt-3.5-turbo", temperature=0.7)
 
 template="""
 Text:{text}
@@ -38,28 +33,20 @@ quiz_generation_prompt = PromptTemplate(
     input_variables=["text", "number", "subject", "tone", "response_json"],
     template=template)
 
-
-
 quiz_chain=LLMChain(llm=llm, prompt=quiz_generation_prompt, output_key="quiz", verbose=True)
 
-template="""
+template2="""
 You are an expert english grammarian and writer. Given a Multiple Choice Quiz for {subject} students.\
-You need to evaluate the complexity of teh question and give a complete analysis of the quiz if the students
+You need to evaluate the complexity of the question and give a complete analysis of the quiz if the students
 will be able to unserstand the questions and answer them. Only use at max 50 words for complexity analysis. 
 if the quiz is not at par with the cognitive and analytical abilities of the students,\
-update tech quiz questions which needs to be changed  and change the tone such that it perfectly fits the student abilities
+update tech quiz questions which needs to be changed and change the tone such that it perfectly fits the student abilities
 Quiz_MCQs:
 {quiz}
 
 Check from an expert English Writer of the above quiz:
 """
 
-quiz_evaluation_prompt=PromptTemplate(input_variables=["subject", "quiz"], template=template)
+quiz_evaluation_prompt=PromptTemplate(input_variables=["subject", "quiz"], template=template2)
 
 review_chain=LLMChain(llm=llm, prompt=quiz_evaluation_prompt, output_key="review", verbose=True)
-
-
-# This is an Overall Chain where we run the two chains in Sequence
-generate_evaluate_chain=SequentialChain(chains=[quiz_chain, review_chain], 
-                                        input_variables=["text", "number", "subject", "tone", "response_json"],
-                                        output_variables=["quiz", "review"], verbose=True)
